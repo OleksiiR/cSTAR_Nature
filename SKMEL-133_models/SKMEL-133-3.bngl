@@ -1,0 +1,778 @@
+begin model
+
+begin molecule types
+	IGF1(RECBD)
+	IGF1R(IGFBD)
+	INS(RECBD)
+	INSR(INSBD)
+	IRS(A~0~P,I~0~P,IBD)
+	IIRS(IRSBD)
+	ERK(YT~0~P)
+	IERK(ERKBD)
+	AKT(S473~0~P)
+	IAKT(AKTBD)
+	PKC(S657~0~P,IBD)
+	IPKC(PKCBD)
+	SRC(Y416~0~P)
+	ISRC(SRCBD)
+	mTOR(Act~0~P,IBD)
+	ImTOR(mTORBD)
+	S6K(T389~0~P)
+	CycD(CDKBD)
+	CDK(CycBD,IBD)
+	ICDK(CDKBD)
+	RB(S807~0~P)
+	MYC()
+	IMYC()
+	Null
+	S
+
+# not used at the moment
+	#ticks	# time
+	#Cell(State~Diff~Prolif)	# if we are solving equations for population dynamics
+end molecule types
+
+
+begin parameters
+
+# model parameters
+
+# time scales
+signal_scale = 5.0
+phen_scale = 9.0
+
+# total concentrations
+IGF1_conc	= 10
+IGF1R_conc	= 1.0
+INS_conc	= 10
+INSR_conc	= 1.0
+
+IRS_total	= 1.0
+ERK_total	= 1.0
+AKT_total	= 1.0
+PKC_total	= 1.0
+SRC_total	= 1.0
+mTOR_total	= 1.0
+S6K_total	= 1.0
+CycD_total	= 1.0
+CDK_total	= 1.0
+RB_total	= 1.0
+MYC_total	= 1.0
+
+
+# Activation and de-activation parameters
+
+# IGF1 and INS
+kpIGF		=	0.01/signal_scale
+KIGF		=	10			# nM, since ligand abundance is not normalized
+knIGF		=	kpIGF*KIGF
+
+kpINS		=	0.01/signal_scale
+KINS		=	10			# nM, since ligand abundance is not normalized
+knINS		=	kpINS*KINS
+
+factor = 0.03	# ratio of cellular and extracellular volume
+
+# IRS
+# synthesis and degradation
+vSynIRS	= 0.0008373261202790559/signal_scale
+vDegIRS		=	5e-5/signal_scale
+#inhPdegIRS	=	5.8456150526145265
+inhPdegIRS	=	11
+vDegIRSP	=	inhPdegIRS*vDegIRS
+# activation
+kpIRS	= 0.011729217242298702/signal_scale
+KpIRS	= 4.648413128968789
+
+vnIRS	= 0.02/signal_scale
+KnIRS	= 1
+# inhibitory phosphorylation of IRS
+#kpmTORIRS	= 0.014654862571215503
+#kpPKCIRS	= 0.04768303679564742
+kpmTORIRS	= 0.005/signal_scale
+kpPKCIRS	= 0.04768303679564742/signal_scale
+KpIRSI	= 0.21594688094529885
+
+vnIRSI	= 0.0007031123437788756/signal_scale
+KnIRSI	= 0.2824094665712077
+
+
+# ERK
+#vpERK	= 0.001
+# ERK is activated by BRAF V600E
+vpERK	= 0.008/signal_scale
+KpERK	= 1
+
+vnERK	= 0.02/signal_scale
+KnERK	= 1
+
+# AKT
+#vpAKT	= 0.001
+# AKT is activated by null PTEN
+#vpAKT	= 0.008
+vpAKT	= 0.004/signal_scale
+KpAKT	= 1
+
+vnAKT	= 0.02/signal_scale
+KnAKT	= 1
+
+# PKC
+vpPKC	= 0.001/signal_scale
+KpPKC	= 1
+
+vnPKC	= 0.02/signal_scale
+KnPKC	= 1
+
+# SRC
+vpSRC	= 0.001/signal_scale
+KpSRC	= 1
+
+vnSRC	= 0.02/signal_scale
+KnSRC	= 1
+
+# CDK
+#vSynCycD= 3.724588282068471e-05
+vSynCycD= 3e-05/signal_scale
+vDegCycD= 0.0029694845522403998/signal_scale
+
+konCycCDK= 0.01/signal_scale
+KCycCDK	= 0.8751698178385203
+koffCycCDK= konCycCDK*KCycCDK
+
+# phosphorylation of Rb
+kpRB	= 0.10012651944223021/signal_scale
+KpRB	= 1
+
+knRB	= 0.03/signal_scale
+KnRB	= 1
+
+# mTOR
+# activation of mTOR
+#vpmTOR	= 0.001
+vpmTOR	= 0.0003/signal_scale
+KpmTOR	= 1
+
+vnmTOR	= 0.02/signal_scale
+KnmTOR	= 1
+# phosphorylation of S6K
+kpmTORS6K	= 0.025/signal_scale
+kpPKCS6K	= 0.025/signal_scale
+KpS6K	= 1
+
+vnS6K	= 0.03/signal_scale
+KnS6K	= 1
+
+# MYC
+# synthesis and degradation
+#vSynMYC		=	1e-4
+vSynMYC		=	3.5e-4/signal_scale
+vDegMYC		=	0.003697714219583487/signal_scale
+
+
+# connection parameters
+# To IRS
+#g_ERKIRS = 1.208688020003514
+g_ERKIRS = 1
+K_ERKIRS = 2.075698020909468
+
+# To ERK
+g_IRSERK = 4.224320484259866
+K_IRSERK = 0.7939610890098737
+
+#g_mTORERK = 59.180479697015045
+g_mTORERK = 25
+K_mTORERK = 4.873758210500289
+
+g_SRCERK = 10.741839351685966
+K_SRCERK = 4.53627855576469
+
+g_CDKERK = 0.07476437125660013
+K_CDKERK = 0.053059155911825695
+
+# To AKT
+g_ERKAKT = 0.1683411357327861
+K_ERKAKT = 0.25866408354571524
+
+g_PKCAKT = 2.8312923936609
+K_PKCAKT = 1.8358058607215673
+
+g_CDKAKT = 1.0051300655603488
+K_CDKAKT = 4.4060899466963175
+
+g_IRSAKT = 54.291202070205365
+K_IRSAKT = 2.931454713626184
+
+g_MYCAKT = 10.209620535310084
+K_MYCAKT = 3.5139000540625602
+
+# To PKC
+# none yet
+
+# To SRC
+g_ERKSRC = 98.89763995903694
+K_ERKSRC = 4.641960915843101
+
+g_PKCSRC = 1.4439859805831834
+K_PKCSRC = 2.1923597569045796
+
+g_MYCSRC = 0.43243746463170235
+K_MYCSRC = 1.2431367327767526
+
+
+# To CDK
+g_ERKCDK = 79.79966161112947
+K_ERKCDK = 0.21799661248597554
+
+g_mTORCDK = 26.039330623180035
+K_mTORCDK = 4.669970710133264
+
+g_MYCCDK = 15.581336586301108
+K_MYCCDK = 4.876101227793962
+
+# To mTOR
+#g_AKTmTOR = 13.830155657596194
+g_AKTmTOR = 30
+K_AKTmTOR = 2.5781839760026135
+
+#g_SRCmTOR = 20
+g_SRCmTOR = 35
+K_SRCmTOR = 1.5370755879226174
+
+g_PKCmTOR = 21.586942190794744
+K_PKCmTOR = 4.057533865309461
+
+#g_CDKmTOR = 12.84123240723683
+g_CDKmTOR = 32
+K_CDKmTOR = 2.872731981608879
+
+# To MYC
+g_CDKMYC = 0.3048714269245507
+K_CDKMYC = 1.035608759233935
+
+
+# Kds of inhibitors
+kpinh		= 0.0004
+Kinh		= 1
+kninh		= kpinh*Kinh
+
+kpIRSinh	= kpinh
+knIRSinh	= kninh
+kpERKinh	= kpinh
+knERKinh	= kninh
+kpAKTinh	= kpinh
+knAKTinh	= kninh
+kpPKCinh	= kpinh
+knPKCinh	= kninh
+kpSRCinh	= kpinh
+knSRCinh	= kninh
+kpCDKinh	= kpinh
+knCDKinh	= kninh
+kpmTORinh	= kpinh
+knmTORinh	= kninh
+
+# Concentrations of inhibitors
+I_IRS_conc	= 0.5
+I_MYC_conc	= 0.5
+I_AKT_conc	= 4.32073354133792
+I_ERK_conc	= 1.3122028733013222
+I_PKC_conc	= 1.7250107623770197
+I_SRC_conc	= 0.5173293874300976
+I_mTOR_conc	= 1.3510883690081217
+I_CDK_conc	= 3.128238440223784
+
+
+
+# phenotypic parameters
+
+beta_SRC = 0.05742494292717556/phen_scale
+beta_mTOR = 0.14083551289353133/phen_scale
+beta_PKC = 1.7639437586896283/phen_scale
+
+alpha0 = 0.003397635461179061/phen_scale
+f0 = 0.0703278693245256/phen_scale
+
+Sd = -2.002813511377114
+Sp =  2.000056679955697
+
+
+end parameters
+
+
+
+begin seed species
+	IGF1(RECBD)				IGF1_conc
+	IGF1R(IGFBD)			IGF1R_conc
+	INS(RECBD)				INS_conc
+	INSR(INSBD)				INSR_conc
+	IRS(A~0,I~0,IBD)		IRS_total
+	$IIRS(IRSBD)			I_IRS_conc
+	ERK(YT~0)				ERK_total
+	$IERK(ERKBD)			I_ERK_conc
+	AKT(S473~0)				AKT_total
+	$IAKT(AKTBD)			I_AKT_conc
+	PKC(S657~0,IBD)			PKC_total
+	$IPKC(PKCBD)			I_PKC_conc
+	SRC(Y416~0)				SRC_total
+	$ISRC(SRCBD)			I_SRC_conc
+	mTOR(Act~0,IBD)			mTOR_total
+	$ImTOR(mTORBD)			I_mTOR_conc
+	S6K(T389~0)				S6K_total
+	CycD(CDKBD)				CycD_total
+	CDK(CycBD,IBD)			CDK_total
+	$ICDK(CDKBD)			I_CDK_conc
+	RB(S807~0)				RB_total
+	MYC()					MYC_total
+	$IMYC()					I_MYC_conc
+	$Null					1
+	S						Sp
+
+	#Cell(State~Diff)		N_cells/2.0
+	#Cell(State~Prolif)		N_cells/2.0
+	#ticks					0
+end seed species
+
+
+
+begin observables
+
+# total forms
+	Molecules		tIRS		IRS()
+
+
+# inactive forms
+	Molecules		nIGF		IGF1(RECBD)
+	Molecules		nINS		INS(RECBD)
+	
+	Molecules		nIRSA		IRS(A~0)
+	Molecules		nIRSI		IRS(I~0)
+	Molecules		nERK		ERK(YT~0)
+	Molecules		nAKT		AKT(S473~0)
+	Molecules		nPKC		PKC(S657~0)
+	Molecules		nSRC		SRC(Y416~0)
+	Molecules		nmTOR		mTOR(Act~0)
+	Molecules		nS6K		S6K(T389~0)
+	Molecules		nCDK		CDK(CycBD)
+	Molecules		nRB			RB(S807~0)
+	
+	#Species			CellsDiff	Cell(State~Diff)
+
+# active forms
+# check for inhibitor domains
+	Molecules		pIGF1R		IGF1R(IGFBD!1).IGF1(RECBD!1)
+	Molecules		pINSR		INSR(INSBD!1).INS(RECBD!1)
+
+	Molecules		pIRSA		IRS(A~P)
+	Molecules		pIRSI		IRS(I~P)
+	Molecules		pIRS		IRS(A~P,I~0)
+	Molecules		pERK		ERK(YT~P)
+	Molecules		pAKT		AKT(S473~P)
+	Molecules		pPKC		PKC(S657~P,IBD)
+	Molecules		pPKCt		PKC(S657~P)
+	Molecules		pSRC		SRC(Y416~P)
+	Molecules		pmTOR		mTOR(Act~P,IBD)
+	Molecules		pmTORt		mTOR(Act~P)
+	Molecules		pS6K		S6K(T389~P)
+	Molecules		fCycD		CycD(CDKBD)
+	Molecules		tCycD		CycD()
+	Molecules		pCDK		CDK(CycBD!+,IBD)
+	Molecules		pCDKt		CDK(CycBD!+)
+	Molecules		pRB			RB(S807~P)
+	Molecules		MYCt		MYC()
+
+	#Species			CellsProl	Cell(State~Prolif)
+
+# inhibitors
+	Species			I_IRS		IIRS(IRSBD)
+	Species			I_ERK		IERK(ERKBD)
+	Species			I_AKT		IAKT(AKTBD)
+	Species			I_PKC		IPKC(PKCBD)
+	Species			I_SRC		ISRC(SRCBD)
+	Species			I_mTOR		ImTOR(mTORBD)
+	Species			I_CDK		ICDK(CDKBD)
+	Species			I_MYC		IMYC()
+
+# phenotypic variable S
+	Species			Sval		S
+
+
+#	Species		t			ticks		#time
+
+end observables
+
+
+begin functions
+
+# hyperbolic connection multipliers
+# To IRS - influence of mTOR and PKC is implemented via inhibitory phosphorylaiton
+alpha_ERKIRS() =	(1.0 + g_ERKIRS*pERK/K_ERKIRS) / (1.0 + pERK/K_ERKIRS)
+#alpha_mTORIRS() =	(1.0 + g_mTORIRS*pmTOR/K_mTORIRS) / (1.0 + pmTOR/K_mTORIRS)
+#alpha_PKCIRS() =	(1.0 + g_PKCIRS*pPKC/K_PKCIRS) / (1.0 + pPKC/K_PKCIRS)
+# To ERK
+alpha_IRSERK() =	(1.0 + g_IRSERK*pIRS/K_IRSERK) / (1.0 + pIRS/K_IRSERK)
+alpha_mTORERK() =	(1.0 + g_mTORERK*pmTOR/K_mTORERK) / (1.0 + pmTOR/K_mTORERK)
+alpha_SRCERK() =	(1.0 + g_SRCERK*pSRC/K_SRCERK) / (1.0 + pSRC/K_SRCERK)
+alpha_CDKERK() =	(1.0 + g_CDKERK*pCDK/K_CDKERK) / (1.0 + pCDK/K_CDKERK)
+# To AKT
+alpha_ERKAKT() =	(1.0 + g_ERKAKT*pERK/K_ERKAKT) / (1.0 + pERK/K_ERKAKT)
+alpha_PKCAKT() =	(1.0 + g_PKCAKT*pPKC/K_PKCAKT) / (1.0 + pPKC/K_PKCAKT)
+alpha_CDKAKT() =	(1.0 + g_CDKAKT*pCDK/K_CDKAKT) / (1.0 + pCDK/K_CDKAKT)
+alpha_IRSAKT() =	(1.0 + g_IRSAKT*pIRS/K_IRSAKT) / (1.0 + pIRS/K_IRSAKT)
+alpha_MYCAKT() =	(1.0 + g_MYCAKT*MYCt/K_MYCAKT) / (1.0 + MYCt/K_MYCAKT)
+# To PKC
+# none yet
+# To SRC
+alpha_ERKSRC() =	(1.0 + g_ERKSRC*pERK/K_ERKSRC) / (1.0 + pERK/K_ERKSRC)
+alpha_PKCSRC() =	(1.0 + g_PKCSRC*pPKC/K_PKCSRC) / (1.0 + pPKC/K_PKCSRC)
+alpha_MYCSRC() =	(1.0 + g_MYCSRC*MYCt/K_MYCSRC) / (1.0 + MYCt/K_MYCSRC)
+# To CDK
+alpha_ERKCDK() =	(1.0 + g_ERKCDK*pERK/K_ERKCDK) / (1.0 + pERK/K_ERKCDK)
+alpha_mTORCDK() =	(1.0 + g_mTORCDK*pmTOR/K_mTORCDK) / (1.0 + pmTOR/K_mTORCDK)
+alpha_MYCCDK() =	(1.0 + g_MYCCDK*MYCt/K_MYCCDK) / (1.0 + MYCt/K_MYCCDK)
+# To mTOR
+alpha_AKTmTOR() =	(1.0 + g_AKTmTOR*pAKT/K_AKTmTOR) / (1.0 + pAKT/K_AKTmTOR)
+alpha_SRCmTOR() =	(1.0 + g_SRCmTOR*pSRC/K_SRCmTOR) / (1.0 + pSRC/K_SRCmTOR)
+alpha_PKCmTOR() =	(1.0 + g_PKCmTOR*pPKC/K_PKCmTOR) / (1.0 + pPKC/K_PKCmTOR)
+alpha_CDKmTOR() =	(1.0 + g_CDKmTOR*pCDK/K_CDKmTOR) / (1.0 + pCDK/K_CDKmTOR)
+
+# To MYC
+alpha_CDKMYC() =	(1.0 + g_CDKMYC*pCDK/K_CDKMYC) / (1.0 + pCDK/K_CDKMYC)
+
+# different expressions for S, comment non-needed ones 
+Seq() = -f0 + \
+		if(Sval < ((3*Sd+1*Sp)/4),-alpha0*(Sval - Sd), \
+		if(Sval < ((3*Sp+1*Sd)/4), alpha0*(Sval-(Sp+Sd)/2), \
+								  -alpha0*(Sval-Sp))) + \
+		beta_mTOR*pmTOR + beta_PKC*pPKC - beta_SRC*pSRC
+		
+S_FSforce() = -f0 + \
+			  if(Sval < ((3*Sd+1*Sp)/4),-alpha0*(Sval - Sd), \
+			  if(Sval < ((3*Sp+1*Sd)/4), alpha0*(Sval-(Sp+Sd)/2), \
+								  		-alpha0*(Sval-Sp)))
+
+		
+betaVal() = beta_mTOR*pmTOR + beta_PKC*pPKC - beta_SRC*pSRC
+
+#SeqVal() = if((t/tconst1 - tconst2) < ((3*S0+Sd)/4), -alpha*((t/tconst1 - tconst2) - S0), if((t/tconst1 - tconst2) < ((3*Sd+S0)/4),alpha*((t/tconst1 - tconst2)-(S0+Sd)/2), if((t/tconst1 - tconst2) < ((3*Sd+Sp)/4), -alpha*((t/tconst1 - tconst2) - Sd), if((t/tconst1 - tconst2) < ((3*Sp+Sd)/4), alpha*((t/tconst1 - tconst2)-(Sp+Sd)/2), -alpha*((t/tconst1 - tconst2)-Sp))))) + \
+#		beta_A_ERK*ppERK + beta_A_S6K*pS6K - beta_A_JNK*pJNK - beta_A_RSK*pRSK
+
+#SeqFSVal() = if((t/tconst1 - tconst2) < ((3*S0+Sd)/4), -alpha*((t/tconst1 - tconst2) - S0), if((t/tconst1 - tconst2) < ((3*Sd+S0)/4),alpha*((t/tconst1 - tconst2)-(S0+Sd)/2), if((t/tconst1 - tconst2) < ((3*Sd+Sp)/4), -alpha*((t/tconst1 - tconst2) - Sd), if((t/tconst1 - tconst2) < ((3*Sp+Sd)/4), alpha*((t/tconst1 - tconst2)-(Sp+Sd)/2), -alpha*((t/tconst1 - tconst2)-Sp))))) 
+
+# Seq() = -alpha*(Sval - S0) + betaERK*(ppERK/ppERK0) + betaAKT*(pAKT/pAKT0) + betaJNK*(pJNK/pJNK0) + betaRSK*(pRSK/pRSK0) + betaS6K*(pS6K/pS6K0)
+# alternative expressions for S
+#Seq() = -alpha*(Sval - S0) + betaERK*ln(ppERK/ppERK0) + betaAKT*ln(pAKT/pAKT0) + betaJNK*ln(pJNK/pJNK0) + betaRSK*ln(pRSK/pRSK0) + betaS6K*ln(pS6K/pS6K0)
+#Seq() = -alpha*(Sval - S0)*(Sval - S1)*(Sval - S2) + betaERK*(ppERK/ppERK0) + betaAKT*(pAKT/pAKT0) + betaJNK*(pJNK/pJNK0) + betaRSK*(pRSK/pRSK0) + betaS6K*(pS6K/pS6K0)
+
+
+# expressions for transitions from proliferation to differenation and back
+# vDiff = A_transition*exp(-beta_transition*S/2) 
+# vProl = A_transition*exp( beta_transition*S/2) 
+
+
+# observables for fitting
+FC_tIRS()	= tIRS
+FC_IRSI()	= pIRSI
+FC_pERK()	= pERK
+FC_pAKT()	= pAKT
+FC_pSRC()	= pSRC
+FC_pPKC()	= pPKCt
+FC_pS6K()	= pS6K
+FC_pRB()	= pRB
+FC_MYC()	= MYCt
+# auxillary
+fr_IRSI() = pIRSI/tIRS
+fr_IRSA() = pIRSA/tIRS
+fr_CycD() = fCycD/tCycD
+
+
+end functions
+
+
+begin reaction rules
+
+# reaction for time usage in functions
+	#Null 				-> ticks						1	# time
+
+# receptor layer
+	# ligand binding
+	IGF1R(IGFBD) + IGF1(RECBD)							<->		IGF1R(IGFBD!1).IGF1(RECBD!1)							kpIGF/sqrt(factor),knIGF*sqrt(factor)
+	INSR(INSBD) + INS(RECBD)							<->		INSR(INSBD!1).INS(RECBD!1)								kpINS/sqrt(factor),knINS*sqrt(factor)
+	# synthesis and basal degradation of IRS
+	Null												->		IRS(A~0,I~0,IBD)										vSynIRS*alpha_ERKIRS()
+	IRS(I~0)											->		Null													vDegIRS
+	IRS(I~P)											->		Null													vDegIRSP
+	# activation and deactivation of IRS
+	# further it can be expanded to include RTKs, IRS activaiton cycle, GAB, and other proteins on the membrane
+	IRS(A~0)				->		IRS(A~P)					(kpIRS*(pIGF1R + pINSR)/KpIRS)*(1/(1+I_IRS))/(1.0+(nIRSA/KpIRS))
+	# we assume that we inhibit IRS by inhibiting IGF1R
+	IRS(A~P)				->		IRS(A~0)					(vnIRS/KnIRS)/(1.0+(pIRSA/KnIRS))
+	# feedback phosphorylation by PKC and mTOR
+	IRS(I~0)				->		IRS(I~P)					((kpmTORIRS*pmTOR + kpPKCIRS*pPKC)/KpIRSI)/(1.0+(nIRSI/KpIRSI))
+	IRS(I~P)				->		IRS(I~0)					(vnIRSI/KnIRSI)/(1.0+(pIRSI/KnIRSI))
+
+# level of main kinases
+	ERK(YT~0)				->		ERK(YT~P)					(vpERK*alpha_IRSERK()*alpha_mTORERK()*alpha_SRCERK()*alpha_CDKERK()/KpERK)*(1/(1+I_ERK))/(1.0+(nERK/KpERK))
+	ERK(YT~P)				->		ERK(YT~0)					(vnERK/KnERK)/(1.0+(pERK/KnERK))
+	# inhibitor suppresses phosphorylation
+    
+	AKT(S473~0)				->		AKT(S473~P)					(vpAKT*alpha_IRSAKT()*alpha_ERKAKT()*alpha_CDKAKT()*alpha_PKCAKT()*alpha_MYCAKT()/KpAKT)*(1/(1+I_AKT))/(1.0+(nAKT/KpAKT))
+	AKT(S473~P)				->		AKT(S473~0)					(vnAKT/KnAKT)/(1.0+(pAKT/KnAKT))
+	# inhibitor suppresses phosphorylation
+
+	PKC(S657~0)				->		PKC(S657~P)					(vpPKC/KpPKC)/(1.0+(nPKC/KpPKC))
+	PKC(S657~P)				->		PKC(S657~0)					(vnPKC/KnPKC)/(1.0+(pPKC/KnPKC))
+	# inhibitor suppresses activity
+    PKC(IBD) + IPKC(PKCBD)	<->		PKC(IBD!1).IPKC(PKCBD!1)	kpPKCinh,knPKCinh
+  
+	SRC(Y416~0)				->		SRC(Y416~P)					(vpSRC*alpha_ERKSRC()*alpha_PKCSRC()*alpha_MYCSRC()/KpSRC)*(1/(1+I_SRC))/(1.0+(nSRC/KpSRC))
+	SRC(Y416~P)				->		SRC(Y416~0)					(vnSRC/KnSRC)/(1.0+(pSRC/KnSRC))
+	# inhibitor suppresses phosphorylation
+
+# downstream kinases
+	# synthesis and degradation of Cyclin D
+	Null					->		CycD(CDKBD)					vSynCycD*alpha_ERKCDK()*alpha_mTORCDK()*alpha_MYCCDK()
+	CycD(CDKBD)				->		Null						vDegCycD
+	
+	CDK(CycBD) + CycD(CDKBD) <->	CDK(CycBD!1).CycD(CDKBD!1)	konCycCDK,koffCycCDK
+	# inhibitor suppresses activity
+    CDK(IBD) + ICDK(CDKBD)	<->		CDK(IBD!1).ICDK(CDKBD!1)	kpCDKinh,knCDKinh
+	# phosphorylation of RB by CDK
+	RB(S807~0)				->		RB(S807~P)					(kpRB*pCDK/KpRB)/(1.0+(nRB/KpRB))
+	RB(S807~P)				->		RB(S807~0)					(knRB/KnRB)/(1.0+(pRB/KnRB))
+    
+	mTOR(Act~0)				->		mTOR(Act~P)					(vpmTOR*alpha_AKTmTOR()*alpha_SRCmTOR()*alpha_CDKmTOR()*alpha_PKCmTOR()/KpmTOR)*(1/(1+I_mTOR))/(1.0+(nmTOR/KpmTOR))
+	mTOR(Act~P)				->		mTOR(Act~0)					(vnmTOR/KnmTOR)/(1.0+(pmTOR/KnmTOR))
+	# inhibitor suppresses activity
+    mTOR(IBD) + ImTOR(mTORBD)	<->		mTOR(IBD!1).ImTOR(mTORBD!1)	kpmTORinh,knmTORinh
+	# phosphorylation of S6K by mTOR and PKC
+	S6K(T389~0)				->		S6K(T389~P)					((kpmTORS6K*pmTOR + kpPKCS6K*pPKC)/KpS6K)/(1.0+(nS6K/KpS6K))
+	S6K(T389~P)				->		S6K(T389~0)					(vnS6K/KnS6K)/(1.0+(pS6K/KnS6K))
+
+    #  MYC is synthesized and degraded instead of activation/deactivation
+    Null					->		MYC()						vSynMYC*(1/(1+I_MYC))
+    MYC()					->		Null						vDegMYC*alpha_CDKMYC()
+# phenotypic equations
+
+# Equation for distance to separation plane S  
+	Null 				->	S							Seq()
+	
+# Equation for transitions between cell states
+	#Cell(State~Diff)	<->	Cell(State~Prolif)			vProl(),vDiff()
+	
+end reaction rules
+
+
+
+
+end model
+
+## actions ##
+generate_network({overwrite=>1})
+writeSBML()
+
+# Equilibration
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"equilibration1",method=>"ode",t_end=>86400,n_steps=>8640,print_functions=>1})
+saveConcentrations()
+
+#setConcentration("S","Sp")
+#simulate({suffix=>"equilibration2",method=>"ode",t_end=>86400,n_steps=>8640,print_functions=>1})
+#saveConcentrations()
+
+
+# F_S eq
+#resetConcentrations()
+#setConcentration("TRKl(Rec)",10)	# stimulation with a ligand
+#setConcentration("ticks",0)	# stimulation with a ligand
+#simulate({suffix=>"F_S_eq",method=>"ode",t_end=>20,n_steps=>200,print_functions=>1})
+
+# AKTi time course
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",3)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"AKTinh",method=>"ode",t_end=>30000,n_steps=>3000,print_functions=>1})
+
+# IRSi time course
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",4)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"IRSinh",method=>"ode",t_end=>30000,n_steps=>3000,print_functions=>1})
+
+# combination time course
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",2)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",1.5)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"combo",method=>"ode",t_end=>30000,n_steps=>3000,print_functions=>1})
+
+
+
+# ERK inhibitor
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)","I_ERK_conc")
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose1_S_ERKinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)","2*I_ERK_conc")
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose2_S_ERKinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+
+# AKT inhibitor
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)","I_AKT_conc")
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose1_S_AKTinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)","2*I_AKT_conc")
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose2_S_AKTinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+
+# PKC inhibitor
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)","I_PKC_conc")
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose1_S_PKCinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)","2*I_PKC_conc")
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose2_S_PKCinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+
+# SRC inhibitor
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)","I_SRC_conc")
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose1_S_SRCinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)","2*I_SRC_conc")
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose2_S_SRCinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+
+# mTOR inhibitor
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)","I_mTOR_conc")
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose1_S_mTORinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)","2*I_mTOR_conc")
+setConcentration("ICDK(CDKBD)",0)
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose2_S_mTORinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+
+# CDK inhibitor
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)","I_CDK_conc")
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose1_S_CDKinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+resetConcentrations()
+setConcentration("IIRS(IRSBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IPKC(PKCBD)",0)
+setConcentration("ISRC(SRCBD)",0)
+setConcentration("ImTOR(mTORBD)",0)
+setConcentration("ICDK(CDKBD)","2*I_CDK_conc")
+setConcentration("IMYC()",0)
+simulate({suffix=>"dose2_S_CDKinh",method=>"ode",t_end=>86400,n_steps=>864,print_functions=>1})
+
+
+
+

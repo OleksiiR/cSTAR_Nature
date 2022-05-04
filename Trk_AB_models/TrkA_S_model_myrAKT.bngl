@@ -1,0 +1,560 @@
+begin model
+
+begin molecule types
+	TRKl(Rec)
+	ITRK(TRKBD)
+	TRK(Y~0~P,Lig,Dim,IBD)
+	IRTK(RTKBD)
+	AdRTK(Y~0~P,Dim,IBD)
+	IJNK(JNKBD)
+	JNK(YT~0~P,IBD)
+	IERK(ERKBD)
+	ERK(YT~0~PP)
+	IAKT(AKTBD)
+	AKT(S~0~P)
+	IRSK(RSKBD)
+	RSK(TS~0~P)
+	IS6K(S6KBD)
+	S6K(TS~0~P,IBD)
+	Null
+	S
+
+# not used at the moment
+	#ticks	# time
+	#Cell(State~Diff~Prolif)	# if we are solving equations for population dynamics
+end molecule types
+
+
+begin parameters
+
+
+# total concentrations
+TRK_total	= 1.0
+AdRTK_total	= 1.0
+JNK_total	= 1.0
+ERK_total	= 1.0
+AKT_total	= 1.0
+RSK_total	= 1.0
+S6K_total	= 1.0
+TRKl_conc= 10		# concentration of TRK ligand
+
+
+# time scales
+time_scale_dim	= 0.181
+time_scale_JNK	= 0.053
+time_scale_S6K	= 0.024
+
+# TRK synthesis and degradation
+# basal
+vSynTRK		=	3e-5
+vDegTRK		=	1e-5
+# active forms
+vDegTRKp	=	0.0032
+vDegTRKDim0	=	0
+vDegTRKDim1	=	vDegTRKp/2
+vDegTRKDim2	=	vDegTRKp
+# Ligand binding for TRK
+kpTRKl		=	0.01
+KTRKl		=	20			# nM, since ligand abundance is not normalized
+knTRKl		=	kpTRKl*KTRKl
+# TRK dimerization
+f			=	0.257	# dimerization facilitation factor
+g			=	f		# affinity for binding second molecule, we assume that binding of each molecule increases dimerization affinity ~10-fold
+kpTRKdim0	=	0.01*time_scale_dim
+KTRKdimall	=	17
+KTRKdim0	=	KTRKdimall		# TRK abundance is normalized on 1
+knTRKdim0	=	kpTRKdim0*KTRKdim0
+kpTRKdim1	=	0.01*time_scale_dim
+KTRKdim1	=	KTRKdimall		# TRK abundance is normalized on 1
+knTRKdim1	=	kpTRKdim1*KTRKdim1
+kpTRKdim2	=	0.01*time_scale_dim
+KTRKdim2	=	KTRKdimall		# TRK abundance is normalized on 1
+knTRKdim2	=	kpTRKdim2*KTRKdim2
+# TRK phosphorylation and dephosphorylation
+vpTRK		=	2.356
+vnTRK		=	0.12
+
+# RTK synthesis and degradation
+# basal
+vSynRTK		=	1.27e-5
+vDegRTK		=	1e-5
+# active forms
+vDegRTKp	=	0.00061
+vDegRTKDim0	=	0
+vDegRTKDim1	=	vDegRTKp/2
+vDegRTKDim2	=	vDegRTKp
+# RTK dimerization
+kpRTKdim0	=	0.01*time_scale_dim
+KRTKdimall	=	5
+KRTKdim0	=	KRTKdimall		# RTK abundance is normalized on 1
+knRTKdim0	=	kpRTKdim0*KRTKdim0
+kpRTKdim1	=	0.01*time_scale_dim
+KRTKdim1	=	KRTKdimall		# RTK abundance is normalized on 1
+knRTKdim1	=	kpRTKdim1*KRTKdim1
+kpRTKdim2	=	0.01*time_scale_dim
+KRTKdim2	=	KRTKdimall		# RTK abundance is normalized on 1
+knRTKdim2	=	kpRTKdim2*KRTKdim2
+# RTK phosphorylation and dephosphorylation
+vpRTK		=	0.12
+vnRTK		=	0.4
+
+
+# Activation by ligand
+factor = 0.03	# ratio of cellular and extracellular volume
+
+
+# Activation and de-activation parameters
+
+# JNK
+vpJNK	= 0.01*time_scale_JNK
+KpJNK	= 0.5
+
+vnJNK	= 0.1*time_scale_JNK
+KnJNK	= 0.5
+
+vpERK	= 0.006
+KpERK	= 8
+
+vnERK	= 0.04
+KnERK	= 0.25
+
+# AKT
+vpAKT	= 0.003
+KpAKT	= 7
+
+vnAKT	= 0.002
+KnAKT	= 1
+
+# S6K
+vpS6K	= 0.01*time_scale_S6K
+KpS6K	= 0.5
+
+vnS6K	= 0.1*time_scale_S6K
+KnS6K	= 0.5
+
+# RSK
+vpRSKbasal = 0.03
+kpRSKA = 0.1
+KpRSKA	= 0.3
+
+vnRSK	= 0.03
+KnRSK	= 1
+
+
+# connection parameters
+# To RTK
+g_A_S6KRTK = 3.366
+K_A_S6KRTK = 2.31
+
+g_A_ERKRTK = 1.0
+K_A_ERKRTK = 1.0
+
+# To JNK
+g_A_ERKJNK = 3.769
+K_A_ERKJNK = 1.545
+
+# To ERK
+g_A_RTKERK = 1.3
+K_A_RTKERK = 3
+
+g_A_TRKERK = 220
+K_A_TRKERK = 0.108
+
+g_A_S6KERK = 0.13
+K_A_S6KERK = 0.1
+
+g_A_AKTERK = 0.742
+K_A_AKTERK = 0.378
+
+g_A_JNKERK = 1.756
+K_A_JNKERK = 0.0777
+
+g_A_RSKERK = 0.005
+K_A_RSKERK = 0.07
+
+# To AKT
+g_A_RTKAKT = 1.5
+K_A_RTKAKT = 0.38
+
+g_A_TRKAKT = 3.68
+K_A_TRKAKT = 2.06
+
+g_A_S6KAKT = 0.012
+K_A_S6KAKT = 0.06
+
+g_A_RSKAKT = 1.5
+K_A_RSKAKT = 1.088
+
+g_A_JNKAKT = 0.7
+K_A_JNKAKT = 0.762
+
+g_A_ERKAKT = 18
+K_A_ERKAKT = 0.5
+
+# To S6K
+g_A_AKTS6K = 500
+K_A_AKTS6K = 5
+
+
+# Kds of inhibitors
+kpinh		= 1
+Kinh		= 1
+kninh		= kpinh*Kinh
+
+kpTRKinh	= kpinh
+knTRKinh	= kninh
+kpRTKinh	= kpinh
+knRTKinh	= kninh
+kpJNKinh	= kpinh
+knJNKinh	= kninh
+kpERKinh	= kpinh
+knERKinh	= kninh
+kpAKTinh	= kpinh
+knAKTinh	= kninh
+kpS6Kinh	= kpinh
+knS6Kinh	= kninh
+kpRSKinh	= kpinh
+knRSKinh	= kninh
+
+# Concentrations of inhibitors
+I_AKT_conc	= 1.42
+I_ERK_conc	= 0.5
+I_TRK_conc	= 26
+I_JNK_conc	= 11
+I_S6K_conc	= 25
+I_RSK_conc	= 1.7
+I_AdRTK_conc	= 0.0
+
+
+
+# phenotypic parameters
+
+beta_A_ERK = 0.015786136158766506
+beta_A_JNK = 0.0024947210489184254
+beta_A_RSK = 0.003784457243844016
+beta_A_S6K = 0.07390725716467261
+
+
+alpha0 = 0.02177444201582442
+alphad = 0.005283836510367726
+alphap = 0.0058691326444601935
+
+S0 = -4.3636308697015025
+Sd = -3.31964339545278
+Sp =  3.54540761145382
+
+
+end parameters
+
+begin seed species
+
+	TRKl(Rec)				TRKl_conc
+	$ITRK(TRKBD)			I_TRK_conc
+	TRK(Y~0,Lig,Dim,IBD)	TRK_total
+	$IRTK(RTKBD)			I_AdRTK_conc
+	AdRTK(Y~0,Dim,IBD)		AdRTK_total
+	$IJNK(JNKBD)			I_JNK_conc
+	JNK(YT~0,IBD)			JNK_total
+	$IERK(ERKBD)			I_ERK_conc
+	ERK(YT~0)				ERK_total
+	$IAKT(AKTBD)			I_AKT_conc
+	AKT(S~0)				AKT_total
+	$IRSK(RSKBD)			I_RSK_conc
+	RSK(TS~0)				RSK_total
+	$IS6K(S6KBD)			I_S6K_conc
+	S6K(TS~0,IBD)			S6K_total
+	$Null					1
+	S						2*S0
+
+	#Cell(State~Diff)		N_cells/2.0
+	#Cell(State~Prolif)		N_cells/2.0
+	#ticks					0
+end seed species
+
+
+
+begin observables
+
+# inactive forms
+	Molecules		nTRK		TRK(Y~0)
+	Molecules		nAdRTK		AdRTK(Y~0)
+	Molecules		nJNK		JNK(YT~0)
+	Molecules		nERK		ERK(YT~0)
+	Molecules		nAKT		AKT(S~0)
+	Molecules		nRSK		RSK(TS~0)
+	Molecules		nS6K		S6K(TS~0)
+
+	#Species			CellsDiff	Cell(State~Diff)
+
+# active forms
+	Molecules		pTRK		TRK(Y~P)
+	Molecules		pAdRTK		AdRTK(Y~P)
+	Molecules		pJNK		JNK(YT~P,IBD)
+	Molecules		pJNKt		JNK(YT~P)
+	Molecules		ppERK		ERK(YT~PP)
+	Molecules		pAKT		AKT(S~P)
+	Molecules		pRSK		RSK(TS~P)
+	Molecules		pS6K		S6K(TS~P,IBD)
+	Molecules		pS6Kt		S6K(TS~P)
+
+	#Species			CellsProl	Cell(State~Prolif)
+
+# inhibitors
+	Species			I_TRK		ITRK(TRKBD)
+	Species			I_RTK		IRTK(RTKBD)
+	Species			I_JNK		IJNK(JNKBD)
+	Species			I_ERK		IERK(ERKBD)
+	Species			I_AKT		IAKT(AKTBD)
+	Species			I_S6K		IS6K(S6KBD)
+	Species			I_RSK		IRSK(RSKBD)
+
+# dimerization
+# TRK
+	Molecules		TRK_l		TRK(Lig!+)
+	Molecules		TRKdim		TRK(Dim!+)
+	Species			TRKdim0		TRK(Dim!1,Y~0).TRK(Dim!1,Y~0)
+	Species			TRKdim1		TRK(Dim!1,Y~P).TRK(Dim!1,Y~0)
+	Species			TRKdim2		TRK(Dim!1,Y~P).TRK(Dim!1,Y~P)
+	Molecules		TRKmon		TRK(Lig!+,Dim)
+	Species			pTRKmon		TRK(Y~P,Dim)
+# RTK
+	Molecules		RTKdim		AdRTK(Dim!+)
+	Species			RTKdim0		AdRTK(Dim!1,Y~0).AdRTK(Dim!1,Y~0)
+	Species			RTKdim1		AdRTK(Dim!1,Y~P).AdRTK(Dim!1,Y~0)
+	Species			RTKdim2		AdRTK(Dim!1,Y~P).AdRTK(Dim!1,Y~P)
+	Species			pRTKmon		AdRTK(Y~P,Dim)
+
+# phenotypic variable S
+	Species			Sval		S
+
+
+#	Species		t			ticks		#time
+
+end observables
+
+
+begin functions
+
+# hyperbolic connection multipliers
+
+alpha_A_S6KRTK() =	(1.0 + g_A_S6KRTK*pS6K/K_A_S6KRTK) / (1.0 + pS6K/K_A_S6KRTK)
+alpha_A_ERKRTK() =	(1.0 + g_A_ERKRTK*ppERK/K_A_ERKRTK) / (1.0 + ppERK/K_A_ERKRTK)
+
+alpha_A_ERKJNK() =	(1.0 + g_A_ERKJNK*ppERK/K_A_ERKJNK) / (1.0 + ppERK/K_A_ERKJNK)
+
+alpha_A_RTKERK() =	(1.0 + g_A_RTKERK*pAdRTK/K_A_RTKERK) / (1.0 + pAdRTK/K_A_RTKERK)
+alpha_A_TRKERK() =	(1.0 + g_A_TRKERK*pTRK/K_A_TRKERK) / (1.0 + pTRK/K_A_TRKERK)
+alpha_A_S6KERK() =	(1.0 + g_A_S6KERK*pS6K/K_A_S6KERK) / (1.0 + pS6K/K_A_S6KERK)
+alpha_A_AKTERK() =	(1.0 + g_A_AKTERK*pAKT/K_A_AKTERK) / (1.0 + pAKT/K_A_AKTERK)
+alpha_A_JNKERK() =	(1.0 + g_A_JNKERK*pJNK/K_A_JNKERK) / (1.0 + pJNK/K_A_JNKERK)
+alpha_A_RSKERK() =	(1.0 + g_A_RSKERK*pRSK/K_A_RSKERK) / (1.0 + pRSK/K_A_RSKERK)
+
+alpha_A_RTKAKT() =	(1.0 + g_A_RTKAKT*pAdRTK/K_A_RTKAKT) / (1.0 + pAdRTK/K_A_RTKAKT)
+alpha_A_TRKAKT() =	(1.0 + g_A_TRKAKT*pTRK/K_A_TRKAKT) / (1.0 + pTRK/K_A_TRKAKT)
+alpha_A_S6KAKT() =	(1.0 + g_A_S6KAKT*pS6K/K_A_S6KAKT) / (1.0 + pS6K/K_A_S6KAKT)
+alpha_A_ERKAKT() =	(1.0 + g_A_ERKAKT*ppERK/K_A_ERKAKT) / (1.0 + ppERK/K_A_ERKAKT)
+alpha_A_JNKAKT() =	(1.0 + g_A_JNKAKT*pJNK/K_A_JNKAKT) / (1.0 + pJNK/K_A_JNKAKT)
+alpha_A_RSKAKT() =	(1.0 + g_A_RSKAKT*pRSK/K_A_RSKAKT) / (1.0 + pRSK/K_A_RSKAKT)
+
+alpha_A_AKTS6K() =	(1.0 + g_A_AKTS6K*pAKT/K_A_AKTS6K) / (1.0 + pAKT/K_A_AKTS6K)
+
+
+
+# different expressions for S, comment non-needed ones 
+Seq() = if(Sval < ((3*S0+1*Sd)/4),-alpha0*(Sval - S0), \
+		if(Sval < ((2*Sd+2*S0)/4), alpha0*(Sval-(S0+Sd)/2), \
+		if(Sval < ((3*Sd+1*S0)/4), alphad*(Sval-(S0+Sd)/2), \
+		if(Sval < ((3*Sd+1*Sp)/4),-alphad*(Sval - Sd), \
+		if(Sval < ((2*Sp+2*Sd)/4), alphad*(Sval-(Sp+Sd)/2), \
+		if(Sval < ((3*Sp+1*Sd)/4), alphap*(Sval-(Sp+Sd)/2), \
+								  -alphap*(Sval-Sp))))))) + \
+		beta_A_ERK*ppERK + beta_A_S6K*pS6K - beta_A_JNK*pJNK - beta_A_RSK*pRSK
+		
+S_FSforce() = if(Sval < ((3*S0+1*Sd)/4),-alpha0*(Sval - S0), \
+			  if(Sval < ((2*Sd+2*S0)/4), alpha0*(Sval-(S0+Sd)/2), \
+			  if(Sval < ((3*Sd+1*S0)/4), alphad*(Sval-(S0+Sd)/2), \
+			  if(Sval < ((3*Sd+1*Sp)/4),-alphad*(Sval - Sd), \
+			  if(Sval < ((2*Sp+2*Sd)/4), alphad*(Sval-(Sp+Sd)/2), \
+			  if(Sval < ((3*Sp+1*Sd)/4), alphap*(Sval-(Sp+Sd)/2), \
+								  		-alphap*(Sval-Sp)))))))
+		
+betaVal() = beta_A_ERK*ppERK + beta_A_S6K*pS6K - beta_A_JNK*pJNK - beta_A_RSK*pRSK
+
+#SeqVal() = if((t/tconst1 - tconst2) < ((3*S0+Sd)/4), -alpha*((t/tconst1 - tconst2) - S0), if((t/tconst1 - tconst2) < ((3*Sd+S0)/4),alpha*((t/tconst1 - tconst2)-(S0+Sd)/2), if((t/tconst1 - tconst2) < ((3*Sd+Sp)/4), -alpha*((t/tconst1 - tconst2) - Sd), if((t/tconst1 - tconst2) < ((3*Sp+Sd)/4), alpha*((t/tconst1 - tconst2)-(Sp+Sd)/2), -alpha*((t/tconst1 - tconst2)-Sp))))) + \
+#		beta_A_ERK*ppERK + beta_A_S6K*pS6K - beta_A_JNK*pJNK - beta_A_RSK*pRSK
+
+#SeqFSVal() = if((t/tconst1 - tconst2) < ((3*S0+Sd)/4), -alpha*((t/tconst1 - tconst2) - S0), if((t/tconst1 - tconst2) < ((3*Sd+S0)/4),alpha*((t/tconst1 - tconst2)-(S0+Sd)/2), if((t/tconst1 - tconst2) < ((3*Sd+Sp)/4), -alpha*((t/tconst1 - tconst2) - Sd), if((t/tconst1 - tconst2) < ((3*Sp+Sd)/4), alpha*((t/tconst1 - tconst2)-(Sp+Sd)/2), -alpha*((t/tconst1 - tconst2)-Sp))))) 
+
+# Seq() = -alpha*(Sval - S0) + betaERK*(ppERK/ppERK0) + betaAKT*(pAKT/pAKT0) + betaJNK*(pJNK/pJNK0) + betaRSK*(pRSK/pRSK0) + betaS6K*(pS6K/pS6K0)
+# alternative expressions for S
+#Seq() = -alpha*(Sval - S0) + betaERK*ln(ppERK/ppERK0) + betaAKT*ln(pAKT/pAKT0) + betaJNK*ln(pJNK/pJNK0) + betaRSK*ln(pRSK/pRSK0) + betaS6K*ln(pS6K/pS6K0)
+#Seq() = -alpha*(Sval - S0)*(Sval - S1)*(Sval - S2) + betaERK*(ppERK/ppERK0) + betaAKT*(pAKT/pAKT0) + betaJNK*(pJNK/pJNK0) + betaRSK*(pRSK/pRSK0) + betaS6K*(pS6K/pS6K0)
+
+
+# expressions for transitions from proliferation to differenation and back
+# vDiff = A_transition*exp(-beta_transition*S/2) 
+# vProl = A_transition*exp( beta_transition*S/2) 
+
+
+# observables for fitting
+FC_pTRK()	= pTRK
+FC_pAdRTK()	= pAdRTK
+FC_pJNK()	= pJNKt
+FC_ppERK()	= ppERK
+FC_pAKT()	= pAKT
+FC_pRSK()	= pRSK
+FC_pS6K()	= pS6Kt
+
+
+end functions
+
+
+begin reaction rules
+
+# reaction for time usage in functions
+	#Null 				-> ticks						1	# time
+
+
+# RTK layer
+	# synthesis and basal degradation of TRK
+	Null												->		TRK(Y~0,Lig,Dim,IBD)									vSynTRK
+	TRK(Y~0,Dim)										->		Null													vDegTRK
+	# cycles of ligand binding and dimerization (by Kholodenko, 2015, we assume completely symmetrical dimerization)
+	# 1. dimerization without ligand
+	TRK(Lig,Dim,Y~0)	+ TRK(Lig,Dim,Y~0)				<->		TRK(Lig,Dim!1,Y~0).TRK(Lig,Dim!1,Y~0)					kpTRKdim0,knTRKdim0
+	TRK(Lig,Dim,Y~P)	+ TRK(Lig,Dim,Y~0)				<->		TRK(Lig,Dim!1,Y~P).TRK(Lig,Dim!1,Y~0)					kpTRKdim1,knTRKdim1
+	TRK(Lig,Dim,Y~P)	+ TRK(Lig,Dim,Y~P)				<->		TRK(Lig,Dim!1,Y~P).TRK(Lig,Dim!1,Y~P)					kpTRKdim2,knTRKdim2
+	# 2. ligand binding
+	TRK(Lig,Dim) + TRKl(Rec)							<->		TRK(Lig!1,Dim).TRKl(Rec!1)								kpTRKl/sqrt(factor),knTRKl*sqrt(factor)
+	# 3. binding of the lingand to the dimer
+	TRK(Lig,Dim!1,Y~0).TRK(Lig,Dim!1,Y~0) + TRKl(Rec)	<->		TRK(Lig!2,Dim!1,Y~0).TRK(Lig,Dim!1,Y~0).TRKl(Rec!2)		kpTRKl/sqrt(f*factor),knTRKl*sqrt(f*factor)
+	TRK(Lig,Dim!1,Y~P).TRK(Lig,Dim!1,Y~0) + TRKl(Rec)	<->		TRK(Lig!2,Dim!1,Y~P).TRK(Lig,Dim!1,Y~0).TRKl(Rec!2)		kpTRKl/sqrt(f*factor),knTRKl*sqrt(f*factor)
+	TRK(Lig,Dim!1,Y~0).TRK(Lig,Dim!1,Y~P) + TRKl(Rec)	<->		TRK(Lig!2,Dim!1,Y~0).TRK(Lig,Dim!1,Y~P).TRKl(Rec!2)		kpTRKl/sqrt(f*factor),knTRKl*sqrt(f*factor)
+	TRK(Lig,Dim!1,Y~P).TRK(Lig,Dim!1,Y~P) + TRKl(Rec)	<->		TRK(Lig!2,Dim!1,Y~P).TRK(Lig,Dim!1,Y~P).TRKl(Rec!2)		kpTRKl/sqrt(f*factor),knTRKl*sqrt(f*factor)
+	# 4. dimerization with 1 ligand
+	TRK(Lig,Dim,Y~0) + TRK(Lig!1,Dim,Y~0).TRKl(Rec!1)	<->		TRK(Lig,Dim!2,Y~0).TRK(Lig!1,Dim!2,Y~0).TRKl(Rec!1)		kpTRKdim0/sqrt(f),knTRKdim0*sqrt(f)
+	TRK(Lig,Dim,Y~P) + TRK(Lig!1,Dim,Y~0).TRKl(Rec!1)	<->		TRK(Lig,Dim!2,Y~P).TRK(Lig!1,Dim!2,Y~0).TRKl(Rec!1)		kpTRKdim1/sqrt(f),knTRKdim1*sqrt(f)
+	TRK(Lig,Dim,Y~0) + TRK(Lig!1,Dim,Y~P).TRKl(Rec!1)	<->		TRK(Lig,Dim!2,Y~0).TRK(Lig!1,Dim!2,Y~P).TRKl(Rec!1)		kpTRKdim1/sqrt(f),knTRKdim1*sqrt(f)
+	TRK(Lig,Dim,Y~P) + TRK(Lig!1,Dim,Y~P).TRKl(Rec!1)	<->		TRK(Lig,Dim!2,Y~P).TRK(Lig!1,Dim!2,Y~P).TRKl(Rec!1)		kpTRKdim2/sqrt(f),knTRKdim2*sqrt(f)
+	# 5. binding of the second molecule of ligand to the dimer
+	TRK(Lig,Dim!1,Y~0).TRK(Lig!3,Dim!1,Y~0).TRKl(Rec!3) + TRKl(Rec)	<->	TRK(Lig!2,Dim!1,Y~0).TRK(Lig!3,Dim!1,Y~0).TRKl(Rec!2).TRKl(Rec!3)		kpTRKl/sqrt(g*factor),knTRKl*sqrt(g*factor)
+	TRK(Lig,Dim!1,Y~P).TRK(Lig!3,Dim!1,Y~0).TRKl(Rec!3) + TRKl(Rec)	<->	TRK(Lig!2,Dim!1,Y~P).TRK(Lig!3,Dim!1,Y~0).TRKl(Rec!2).TRKl(Rec!3)		kpTRKl/sqrt(g*factor),knTRKl*sqrt(g*factor)
+	TRK(Lig,Dim!1,Y~0).TRK(Lig!3,Dim!1,Y~P).TRKl(Rec!3) + TRKl(Rec)	<->	TRK(Lig!2,Dim!1,Y~0).TRK(Lig!3,Dim!1,Y~P).TRKl(Rec!2).TRKl(Rec!3)		kpTRKl/sqrt(g*factor),knTRKl*sqrt(g*factor)
+	TRK(Lig,Dim!1,Y~P).TRK(Lig!3,Dim!1,Y~P).TRKl(Rec!3) + TRKl(Rec)	<->	TRK(Lig!2,Dim!1,Y~P).TRK(Lig!3,Dim!1,Y~P).TRKl(Rec!2).TRKl(Rec!3)		kpTRKl/sqrt(g*factor),knTRKl*sqrt(g*factor)
+	# 6. dimerization with 2 ligands
+	TRK(Lig!+,Dim,Y~0)	+ TRK(Lig!+,Dim,Y~0)			<->		TRK(Lig!+,Dim!1,Y~0).TRK(Lig!+,Dim!1,Y~0)				kpTRKdim0/sqrt(f*g),knTRKdim0*sqrt(f*g)
+	TRK(Lig!+,Dim,Y~P)	+ TRK(Lig!+,Dim,Y~0)			<->		TRK(Lig!+,Dim!1,Y~P).TRK(Lig!+,Dim!1,Y~0)				kpTRKdim1/sqrt(f*g),knTRKdim1*sqrt(f*g)
+	TRK(Lig!+,Dim,Y~P)	+ TRK(Lig!+,Dim,Y~P)			<->		TRK(Lig!+,Dim!1,Y~P).TRK(Lig!+,Dim!1,Y~P)				kpTRKdim2/sqrt(f*g),knTRKdim2*sqrt(f*g)
+	# phosphorylation
+	TRK(Dim!1,Y~0).TRK(Dim!1,IBD)						->		TRK(Dim!1,Y~P).TRK(Dim!1,IBD)							vpTRK
+	# dephosphorylation
+	TRK(Y~P)											->		TRK(Y~0)												vnTRK
+	# inhibitor binding - inhibitor suppresses phosphorylation
+	TRK(IBD) + ITRK(TRKBD)						<->		TRK(IBD!1).ITRK(TRKBD!1)					kpTRKinh,knTRKinh
+	# degradation of acive forms of TRK
+	TRK(Dim,Y~P)								->		Null										vDegTRKp
+	TRK(Dim!1,Y~0).TRK(Dim!1,Y~0)				->		Null										vDegTRKDim0
+	TRK(Dim!1,Y~P).TRK(Dim!1,Y~0)				->		Null										vDegTRKDim1
+	TRK(Dim!1,Y~P).TRK(Dim!1,Y~P)				->		Null										vDegTRKDim2
+
+
+	# synthesis and basal degradation of RTK
+	Null									->		AdRTK(Y~0,Dim,IBD)						vSynRTK
+	AdRTK(Y~0,Dim)							->		Null									vDegRTK
+	# dimerization
+	AdRTK(Dim,Y~0)	+ AdRTK(Dim,Y~0)		<->		AdRTK(Dim!1,Y~0).AdRTK(Dim!1,Y~0)		kpRTKdim0,knRTKdim0
+	AdRTK(Dim,Y~P)	+ AdRTK(Dim,Y~0)		<->		AdRTK(Dim!1,Y~P).AdRTK(Dim!1,Y~0)		kpRTKdim1,knRTKdim1
+	AdRTK(Dim,Y~P)	+ AdRTK(Dim,Y~P)		<->		AdRTK(Dim!1,Y~P).AdRTK(Dim!1,Y~P)		kpRTKdim2,knRTKdim2
+	# phosphorylation
+	AdRTK(Dim!1,Y~0).AdRTK(Dim!1,IBD)		->		AdRTK(Dim!1,Y~P).AdRTK(Dim!1,IBD)		vpRTK*alpha_A_S6KRTK()*alpha_A_ERKRTK()
+	# dephosphorylation
+	AdRTK(Y~P)								->		AdRTK(Y~0)								vnRTK
+	# inhibitor binding - inhibitor suppresses phosphorylation
+	AdRTK(IBD) + IRTK(RTKBD)				<->		AdRTK(IBD!1).IRTK(RTKBD!1)				kpRTKinh,knRTKinh
+	# degradation of acive forms of AdRTK
+	AdRTK(Dim,Y~P)							-> 		Null									vDegRTKp
+	AdRTK(Dim!1,Y~0).AdRTK(Dim!1,Y~0)		->		Null									vDegRTKDim0
+	AdRTK(Dim!1,Y~P).AdRTK(Dim!1,Y~0)		->		Null									vDegRTKDim1
+	AdRTK(Dim!1,Y~P).AdRTK(Dim!1,Y~P)		->		Null									vDegRTKDim2
+
+
+    
+# level of main kinases
+	JNK(YT~0)				->		JNK(YT~P)					(vpJNK*alpha_A_ERKJNK()/KpJNK)/(1.0+(nJNK/KpJNK))
+	JNK(YT~P)				->		JNK(YT~0)					(vnJNK/KnJNK)/(1.0+(pJNK/KnJNK))
+	# inhibitor suppresses activity
+	JNK(IBD) + IJNK(JNKBD)	<->		JNK(IBD!1).IJNK(JNKBD!1)	kpJNKinh,knJNKinh
+    
+	ERK(YT~0)				->		ERK(YT~PP)					(vpERK*alpha_A_RTKERK()*alpha_A_TRKERK()*alpha_A_S6KERK()*alpha_A_AKTERK()*alpha_A_JNKERK()*alpha_A_RSKERK()/KpERK)*(1/(1+I_ERK))/(1.0+(nERK/KpERK))
+	ERK(YT~PP)				->		ERK(YT~0)					(vnERK/KnERK)/(1.0+(ppERK/KnERK))
+	# inhibitor suppresses phosphorylation
+    
+	AKT(S~0)				->		AKT(S~P)					(vpAKT*alpha_A_RTKAKT()*alpha_A_TRKAKT()*alpha_A_S6KAKT()*alpha_A_ERKAKT()*alpha_A_JNKAKT()*alpha_A_RSKAKT()/KpAKT)*(1/(1+I_AKT))/(1.0+(nAKT/KpAKT))
+	AKT(S~P)				->		AKT(S~0)					(vnAKT/KnAKT)/(1.0+(pAKT/KnAKT))
+	# inhibitor suppresses phosphorylation
+    
+  
+# level of downstream kinases
+	RSK(TS~0)				->		RSK(TS~P)					(vpRSKbasal + (kpRSKA*ppERK/KpRSKA))*(1/(1+I_RSK))/(1.0+(nRSK/KpRSKA))
+	RSK(TS~P)				->		RSK(TS~0)					(vnRSK/KnRSK)/(1.0+(pRSK/KnRSK))
+	# inhibitor suppresses phosphorylation
+    
+	S6K(TS~0)				->		S6K(TS~P)					(vpS6K*alpha_A_AKTS6K()/KpS6K)/(1.0+(nS6K/KpS6K))
+	S6K(TS~P)				->		S6K(TS~0)					(vnS6K/KnS6K)/(1.0+(pS6K/KnS6K))
+	# inhibitor suppresses activity
+	S6K(IBD) + IS6K(S6KBD)	<->		S6K(IBD!1).IS6K(S6KBD!1)	kpJNKinh,knJNKinh
+    
+    
+# phenotypic equations
+
+# Equation for distance to separation plane S  
+	Null 				->	S							Seq()
+	
+# Equation for transitions between cell states
+	#Cell(State~Diff)	<->	Cell(State~Prolif)			vProl(),vDiff()
+	
+end reaction rules
+
+
+
+
+end model
+
+## actions ##
+generate_network({overwrite=>1})
+writeSBML()
+
+# Equilibration
+setConcentration("TRKl(Rec)",0)	# background concentration of ligand - no ligand
+setConcentration("ITRK(TRKBD)",0)
+setConcentration("IRTK(RTKBD)",0)
+setConcentration("IJNK(JNKBD)",0)
+setConcentration("IERK(ERKBD)",0)
+setConcentration("IAKT(AKTBD)",0)
+setConcentration("IS6K(S6KBD)",0)
+setConcentration("IRSK(RSKBD)",0)
+simulate({suffix=>"equilibration1",method=>"ode",t_end=>50000,n_steps=>100,print_functions=>1})
+
+setConcentration("S","2*S0")
+simulate({suffix=>"equilibration2",method=>"ode",t_end=>50000,n_steps=>100,print_functions=>1})
+saveConcentrations()
+
+
+# TrkA stimulation time course 1 (from blots)
+#resetConcentrations()
+#setConcentration("TRKl(Rec)",10)	# stimulation with a ligand
+#simulate({suffix=>"timecourse1_A",method=>"ode",t_end=>3600,n_steps=>3600,print_functions=>1})
+
+
+# F_S eq
+#resetConcentrations()
+#setConcentration("TRKl(Rec)",10)	# stimulation with a ligand
+#setConcentration("ticks",0)	# stimulation with a ligand
+#simulate({suffix=>"F_S_eq",method=>"ode",t_end=>20,n_steps=>200,print_functions=>1})
+
+# TrkA stimulation time course 2 (from RPPA data)
+resetConcentrations()
+setConcentration("TRKl(Rec)",10)	# stimulation with a ligand
+#setConcentration("ticks",0)	# stimulation with a ligand
+simulate({suffix=>"timecourse2_A_S",method=>"ode",t_end=>2700,n_steps=>2700,print_functions=>1})
+
